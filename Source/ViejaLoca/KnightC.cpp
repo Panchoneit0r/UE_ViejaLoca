@@ -24,10 +24,10 @@ AKnightC::AKnightC()
 
 	// Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
 	Mesh1P = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterMesh1P"));
-	Mesh1P->SetOnlyOwnerSee(true);
+	Mesh1P->SetOnlyOwnerSee(false);
 	Mesh1P->SetupAttachment(FirstPersonCameraComponent);
-	Mesh1P->bCastDynamicShadow = false;
-	Mesh1P->CastShadow = false;
+	Mesh1P->bCastDynamicShadow = true;
+	Mesh1P->CastShadow = true;
 	//Mesh1P->SetRelativeRotation(FRotator(0.9f, -19.19f, 5.2f));
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -72,7 +72,7 @@ void AKnightC::Look(const FInputActionValue& Value)
 	{
 		// add yaw and pitch input to controller
 		AddControllerYawInput(LookAxisVector.X);
-		AddControllerPitchInput(LookAxisVector.Y);
+		AddControllerPitchInput(-LookAxisVector.Y);
 	}
 }
 
