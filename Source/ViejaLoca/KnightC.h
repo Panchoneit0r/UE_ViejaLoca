@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CrossbowBase.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
 #include "KnightC.generated.h"
@@ -87,4 +88,10 @@ public:
 	/** Returns FirstPersonCameraComponent subobject **/
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite , Category="Gameplay|Crossbow")
+	TSubclassOf<class ACrossbowBase> CrossbowClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite , Category="Gameplay|Crossbow")
+	class ACrossbowBase* Crossbow;
 };
