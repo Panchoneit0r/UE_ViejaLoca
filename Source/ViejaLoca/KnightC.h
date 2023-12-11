@@ -62,16 +62,12 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
-
-
+	
 	void ChangeWeapon();
-
 
 	void Reloded();
 
-
 	void Shot();
-
 
 	
 public:	
@@ -94,4 +90,14 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite , Category="Gameplay|Crossbow")
 	class ACrossbowBase* Crossbow;
+
+	/** Function for ending weapon fire. Once this is called, the player can use StartFire again.*/
+	UFUNCTION(BlueprintCallable, Category = "Gameplay")
+	void StopFire();
+
+	/** A timer handle used for providing the fire rate delay in-between spawns.*/
+	FTimerHandle FiringTimer;
+
+	UFUNCTION(Server,Reliable)
+	void FireServer();
 };

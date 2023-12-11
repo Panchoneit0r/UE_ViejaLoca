@@ -25,6 +25,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite , Category="Gameplay|Projectile")
 	class UStaticMeshComponent* arrowPoint;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Components")
+	class UArrowComponent* FirePoint;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -43,18 +46,8 @@ public:
 
 	/** If true, you are in the process of firing projectiles. */
 	bool bIsFiringWeapon;
-
-	/** Function for beginning weapon fire.*/
-	UFUNCTION(BlueprintCallable, Category="Gameplay")
-	void StartFire();
-
-	/** Function for ending weapon fire. Once this is called, the player can use StartFire again.*/
-	UFUNCTION(BlueprintCallable, Category = "Gameplay")
-	void StopFire();
 	
-	/** Server function for spawning projectiles.*/
-	UFUNCTION(Server, Reliable)
-	void HandleFire();
+	void Shooting();
 
 	/** A timer handle used for providing the fire rate delay in-between spawns.*/
 	FTimerHandle FiringTimer;

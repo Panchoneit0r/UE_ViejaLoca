@@ -91,7 +91,15 @@ void AKnightC::Reloded()
 
 void AKnightC::Shot()
 {
-	Crossbow->StartFire();
+	if (!Crossbow->bIsFiringWeapon)
+	{
+		Crossbow->bIsFiringWeapon = true;
+		UWorld* World = GetWorld();
+		World->GetTimerManager().SetTimer(FiringTimer, this, &AKnightC::StopFire, Crossbow->FireRate,false);
+		//Crossbow->Shooting();
+		FireServer();
+	}
+	
 }
 
 // Called every frame
@@ -125,6 +133,31 @@ void AKnightC::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 		//Change
 		EnhancedInputComponent->BindAction(ChangeWeaponAction, ETriggerEvent::Completed, this, &AKnightC::ChangeWeapon);
+	}
+}
+
+void AKnightC::StopFire()
+{
+	Crossbow->bIsFiringWeapon = false;
+}
+
+void AKnightC::FireServer_Implementation()
+{
+	if (Crossbow->Amunition > 0)
+	{
+		FVector spawnLocation = Crossbow->GetActorLocation();
+		FRotator spawnRotation = GetActorRotation();
+
+		FActorSpawnParameters spawnParameters;
+		spawnParameters.Instigator = GetInstigator();
+		spawnParameters.Owner = this;
+
+		AActor* projectile = GetWorld()->SpawnActor<AActor>(Crossbow->ArrowClass, spawnLocation, spawnRotation, spawnParameters);
+		Crossbow->Amunition--;
+		if(Crossbow->Amunition < 1)
+		{
+			Crossbow->arrowPoint->SetWorldScale3D(FVector(0.0f,0.0f,0.0f));
+		}
 	}
 }
 

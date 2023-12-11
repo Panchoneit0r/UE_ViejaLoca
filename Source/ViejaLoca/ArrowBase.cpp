@@ -14,7 +14,7 @@ AArrowBase::AArrowBase()
 	
 	//Definition for the SphereComponent that will serve as the Root component for the projectile and its collision.
 	BoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("RootComponent"));
-	BoxComponent->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+	//BoxComponent->SetCollisionProfileName(TEXT("BlockAllDynamic"));
 	RootComponent = BoxComponent;
 	
 	//Definition for the Mesh that will serve as your visual representation.

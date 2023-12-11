@@ -4,11 +4,14 @@
 #include "CrossbowBase.h"
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/ArrowComponent.h"
 
 // Sets default values
 ACrossbowBase::ACrossbowBase()
 {
 
+	//bReplicates = true;
+	
 	//Definition for the SphereComponent that will serve as the Root component for the projectile and its collision.
 	BoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("RootComponent"));
 	BoxComponent->SetCollisionProfileName(TEXT("BlockAllDynamic"));
@@ -21,9 +24,14 @@ ACrossbowBase::ACrossbowBase()
 
 	arrowPoint = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ArrowMesh"));
 	arrowPoint->SetupAttachment(RootComponent);
+
+	FirePoint = CreateDefaultSubobject<UArrowComponent>(TEXT("FirePoint"));
+	FirePoint->SetupAttachment(RootComponent);
 	
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	
 }
 
 // Called when the game starts or when spawned
@@ -39,73 +47,17 @@ void ACrossbowBase::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void ACrossbowBase::StartFire()
+
+void ACrossbowBase::Shooting()
 {
-	if (Amunition > 0)
-	{
-		FVector spawnLocation = arrowPoint->GetComponentLocation();
-		FRotator spawnRotation = GetActorRotation();
-
-		FActorSpawnParameters spawnParameters;
-		spawnParameters.Instigator = GetInstigator();
-		spawnParameters.Owner = this;
-
-		AActor* projectile = GetWorld()->SpawnActor<AActor>(ArrowClass, spawnLocation, spawnRotation, spawnParameters);
-		Amunition--;
-		if(Amunition > 0)
-		{
 	
-		}
-	}
-	/*
-     		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-     		if (AnimInstance != nullptr)
-     		{
-     			AnimInstance->Montage_Play(AttackAnim, 2.0f);
-     		}
-     		*/
-     
-     		/*
-     		if (!bIsFiringWeapon)
-     		{
-     			bIsFiringWeapon = true;
-     			UWorld* World = GetWorld();
-     			World->GetTimerManager().SetTimer(FiringTimer, this, &ACrossbowBase::StopFire, false);
-     			HandleFire();
-     		}
-     		*/
-}
-
-void ACrossbowBase::StopFire()
-{
-	bIsFiringWeapon = false;
 }
 
 void ACrossbowBase::Roleded()
 {
 	Amunition = 1;
-	arrowPoint->SetVisibleInRayTracing(true);
+	arrowPoint->SetWorldScale3D(FVector(0.005f,0.005f,0.005f));
 }
 
-void ACrossbowBase::HandleFire_Implementation()
-{
-	FVector spawnLocation = GetActorLocation() + ( GetActorRotation().Vector()  * 100.0f ) + (GetActorUpVector() * 50.0f);
-	FRotator spawnRotation = GetActorRotation();
-
-	FActorSpawnParameters spawnParameters;
-	spawnParameters.Instigator = GetInstigator();
-	spawnParameters.Owner = this;
-
-	/*
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if (AnimInstance != nullptr)
-	{
-		AnimInstance->Montage_Play(AttackAnim, 2.0f);
-	}
-	*/
-	
-	AActor* projectile = GetWorld()->SpawnActor<AActor>(ArrowClass, spawnLocation, spawnRotation, spawnParameters);
-	
-}
 
 
