@@ -15,22 +15,12 @@ AKnightC::AKnightC()
 	
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(55.f, 96.0f);
-		
-	// Create a CameraComponent	
+	
 	FirstPersonCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
-	FirstPersonCameraComponent->SetupAttachment(GetCapsuleComponent());
+	FirstPersonCameraComponent->SetupAttachment(GetMesh());
 	FirstPersonCameraComponent->SetRelativeLocation(FVector(-10.f, 0.f, 60.f)); // Position the camera
 	FirstPersonCameraComponent->bUsePawnControlRotation = true;
-
-	// Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
-	Mesh1P = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterMesh1P"));
-	Mesh1P->SetOnlyOwnerSee(false);
-	Mesh1P->SetupAttachment(FirstPersonCameraComponent);
-	Mesh1P->bCastDynamicShadow = true;
-	Mesh1P->CastShadow = true;
-	//Mesh1P->SetRelativeRotation(FRotator(0.9f, -19.19f, 5.2f));
-	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	
 	PrimaryActorTick.bCanEverTick = true;
 
 }
@@ -47,6 +37,20 @@ void AKnightC::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+
+	FVector spawnLocation = GetActorLocation();
+	FRotator spawnRotation = GetActorRotation();
+
+	FActorSpawnParameters spawnParameters;
+	spawnParameters.Instigator = GetInstigator();
+	spawnParameters.Owner = this;
+
+	Crossbow = GetWorld()->SpawnActor<ACrossbowBase>(CrossbowClass, spawnLocation, spawnRotation, spawnParameters);
+
+	const FAttachmentTransformRules AttachmentTransformRules = FAttachmentTransformRules( EAttachmentRule::SnapToTarget, true );
+	Crossbow->AttachToComponent(GetMesh(),AttachmentTransformRules, "CrossbowSocket");
+
+	FirstPersonCameraComponent->AttachToComponent(GetMesh(),AttachmentTransformRules, "CameraSocket");
 	
 }
 
@@ -82,10 +86,20 @@ void AKnightC::ChangeWeapon()
 
 void AKnightC::Reloded()
 {
+	Crossbow->Roleded();
 }
 
 void AKnightC::Shot()
 {
+	if (!Crossbow->bIsFiringWeapon)
+	{
+		Crossbow->bIsFiringWeapon = true;
+		UWorld* World = GetWorld();
+		World->GetTimerManager().SetTimer(FiringTimer, this, &AKnightC::StopFire, Crossbow->FireRate,false);
+		//Crossbow->Shooting();
+		FireServer();
+	}
+	
 }
 
 // Called every frame
@@ -119,6 +133,31 @@ void AKnightC::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 		//Change
 		EnhancedInputComponent->BindAction(ChangeWeaponAction, ETriggerEvent::Completed, this, &AKnightC::ChangeWeapon);
+	}
+}
+
+void AKnightC::StopFire()
+{
+	Crossbow->bIsFiringWeapon = false;
+}
+
+void AKnightC::FireServer_Implementation()
+{
+	if (Crossbow->Amunition > 0)
+	{
+		FVector spawnLocation = Crossbow->GetActorLocation();
+		FRotator spawnRotation = GetActorRotation();
+
+		FActorSpawnParameters spawnParameters;
+		spawnParameters.Instigator = GetInstigator();
+		spawnParameters.Owner = this;
+
+		AActor* projectile = GetWorld()->SpawnActor<AActor>(Crossbow->ArrowClass, spawnLocation, spawnRotation, spawnParameters);
+		Crossbow->Amunition--;
+		if(Crossbow->Amunition < 1)
+		{
+			Crossbow->arrowPoint->SetWorldScale3D(FVector(0.0f,0.0f,0.0f));
+		}
 	}
 }
 
