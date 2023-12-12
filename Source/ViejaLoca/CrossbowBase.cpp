@@ -47,12 +47,6 @@ void ACrossbowBase::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-
-void ACrossbowBase::Shooting()
-{
-	
-}
-
 void ACrossbowBase::Roleded()
 {
 	Amunition = 1;

@@ -46,8 +46,6 @@ public:
 
 	/** If true, you are in the process of firing projectiles. */
 	bool bIsFiringWeapon;
-	
-	void Shooting();
 
 	/** A timer handle used for providing the fire rate delay in-between spawns.*/
 	FTimerHandle FiringTimer;
