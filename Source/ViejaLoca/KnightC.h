@@ -52,6 +52,9 @@ class VIEJALOCA_API AKnightC : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	class UAnimMontage* RelodedAnim;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	class UAnimMontage* DeathAnim;
+
 public:
 	// Sets default values for this character's properties
 	AKnightC();
@@ -86,9 +89,9 @@ protected:
 	void Death();
 
 	UFUNCTION(BlueprintCallable)
-	void Respawn(FVector respawnPosition);
+	void Respawn();
 
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(Blueprintable)
 	void DeathSystem();
 	
 public:	
@@ -105,6 +108,9 @@ public:
 	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 	/** Returns FirstPersonCameraComponent subobject **/
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
+	
+	UFUNCTION(BlueprintCallable)
+	void Damaged(float _damage);
 
 protected:
 	bool death = false;
@@ -137,9 +143,13 @@ protected:
 	/** Response to health being updated. Called on the server immediately after modification, and on clients in response to a RepNotify*/
 	void OnHealthUpdate();
 
-	UFUNCTION(BlueprintCallable)
-	void Damaged(float _damage);
 
+
+	/** A timer handle used for providing the fire rate delay in-between spawns.*/
+	FTimerHandle DeathTimer;
+
+	FTimerHandle RespawnTimer;
+	
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite , Category="Gameplay|Crossbow")
 	TSubclassOf<class ACrossbowBase> CrossbowClass;

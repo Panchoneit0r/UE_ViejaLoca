@@ -9,7 +9,6 @@
 #include "EnhancedInputSubsystems.h"
 #include "OnlineSubsystem.h"
 #include "OnlineSessionSettings.h"
-#include "OnlineSubsystem.h"
 #include "Net/UnrealNetwork.h"
 
 // Sets default values
@@ -82,7 +81,7 @@ void AKnightC::Move(const FInputActionValue& Value)
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
-	if (Controller != nullptr)
+	if (Controller != nullptr && !death)
 	{
 		// add movement 
 		AddMovementInput(GetActorForwardVector(), MovementVector.Y);
@@ -109,12 +108,15 @@ void AKnightC::ChangeWeapon()
 
 void AKnightC::Reloded()
 {
-	Crossbow->Roleded();
+	if( !death)
+	{
+		Crossbow->Roleded();
+	}
 }
 
 void AKnightC::Shot()
 {
-	if (!Crossbow->bIsFiringWeapon)
+	if (!Crossbow->bIsFiringWeapon && !death)
 	{
 		Crossbow->bIsFiringWeapon = true;
 		UWorld* World = GetWorld();
@@ -148,10 +150,40 @@ void AKnightC::ChangeCamera(const FInputActionValue& Value)
 void AKnightC::Death()
 {
 	death = true;
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance != nullptr)
+	{
+		AnimInstance->Montage_Play(DeathAnim, 1.0f);
+	}
+	UWorld* World = GetWorld();
+	World->GetTimerManager().SetTimer(DeathTimer, this, &AKnightC::DeathSystem, 1.8f,false);
+	
 }
 
-void AKnightC::Respawn(FVector respawnPosition)
+void AKnightC::Respawn()
 {
+	death = false;
+	setCurrentHealth(maxHealth);
+	
+	if (IsLocallyControlled())
+	{
+		APlayerController* PlayerController = Cast<APlayerController>(Controller);
+		PlayerController->SetViewTargetWithBlend(this);
+	}
+	
+	SetActorLocation(FVector(0.0f,0.0f,0.0f));
+}
+
+void AKnightC::DeathSystem()
+{
+	SetActorLocation(FVector(1500.0f,1500.0f,0.0f));
+	if (IsLocallyControlled())
+	{
+		APlayerController* PlayerController = Cast<APlayerController>(Controller);
+		PlayerController->SetViewTargetWithBlend(Cameras[0]);
+	}
+	UWorld* World = GetWorld();
+	World->GetTimerManager().SetTimer(RespawnTimer, this, &AKnightC::Respawn, 10.0f,false);
 }
 
 void AKnightC::setCurrentHealth(float newHealth)
@@ -203,7 +235,7 @@ void AKnightC::OnHealthUpdate()
 	
 	if (currentHealth <= 0)
 	{
-		DeathSystem();
+		Death();
 	}
 }
 
@@ -447,7 +479,8 @@ void AKnightC::FireServer_Implementation()
 {
 	if (Crossbow->Amunition > 0)
 	{
-		FVector spawnLocation = Crossbow->GetActorLocation();
+		//FVector spawnLocation = Crossbow->GetActorLocation();
+		FVector spawnLocation = GetActorLocation() + ( GetActorRotation().Vector()  * 100.0f ) + (GetActorUpVector() * 50.0f);
 		FRotator spawnRotation = GetActorRotation();
 
 		FActorSpawnParameters spawnParameters;

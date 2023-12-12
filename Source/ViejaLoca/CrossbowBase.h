@@ -52,6 +52,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category="Gameplay")
 	int Amunition;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Gameplay")
+    int MaxAmunition;
 
 	UFUNCTION(BlueprintCallable, Category="Gameplay")
 	void Roleded();
