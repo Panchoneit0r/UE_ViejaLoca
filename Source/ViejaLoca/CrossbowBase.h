@@ -46,14 +46,15 @@ public:
 
 	/** If true, you are in the process of firing projectiles. */
 	bool bIsFiringWeapon;
-	
-	void Shooting();
 
 	/** A timer handle used for providing the fire rate delay in-between spawns.*/
 	FTimerHandle FiringTimer;
 
 	UPROPERTY(EditDefaultsOnly, Category="Gameplay")
 	int Amunition;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Gameplay")
+    int MaxAmunition;
 
 	UFUNCTION(BlueprintCallable, Category="Gameplay")
 	void Roleded();

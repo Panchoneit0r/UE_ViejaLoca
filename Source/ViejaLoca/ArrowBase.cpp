@@ -2,6 +2,8 @@
 
 
 #include "ArrowBase.h"
+
+#include "KnightC.h"
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
@@ -40,6 +42,19 @@ void AArrowBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
+}
+
+void AArrowBase::NotifyActorBeginOverlap(AActor* OtherActor)
+{
+	Super::NotifyActorBeginOverlap(OtherActor);
+
+	AKnightC* character = Cast<AKnightC>(OtherActor);
+
+	if(OtherActor)
+	{
+		character->Damaged(100.0f);
+		Destroy();
+	}
 }
 
 // Called every frame

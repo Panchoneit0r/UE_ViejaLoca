@@ -28,6 +28,8 @@ ACrossbowBase::ACrossbowBase()
 	FirePoint = CreateDefaultSubobject<UArrowComponent>(TEXT("FirePoint"));
 	FirePoint->SetupAttachment(RootComponent);
 	
+	Amunition = MaxAmunition;
+	
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -47,16 +49,10 @@ void ACrossbowBase::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-
-void ACrossbowBase::Shooting()
-{
-	
-}
-
 void ACrossbowBase::Roleded()
 {
-	Amunition = 1;
-	arrowPoint->SetWorldScale3D(FVector(0.005f,0.005f,0.005f));
+	Amunition = MaxAmunition;
+	arrowPoint->SetRelativeScale3D(FVector(0.005f,0.005f,0.005f));
 }
 
 
