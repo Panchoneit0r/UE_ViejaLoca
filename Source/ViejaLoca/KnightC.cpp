@@ -106,17 +106,24 @@ void AKnightC::Look(const FInputActionValue& Value)
 	}
 }
 
-void AKnightC::ChangeWeapon()
+//Points and princces
+
+void AKnightC::setCarryingItem(bool _CarryingItem)
 {
+	CarryingItem = _CarryingItem;
+}
+
+void AKnightC::setPoints(float _Points)
+{
+	Points = _Points;
 }
 
 //Reload system
 
 void AKnightC::Reload()
 {
-	if( !death)
+	if( !death && !CarryingItem)
 	{
-		
 		Reloaded = true;
 		ClientReload();
 		ServerReload();
@@ -155,7 +162,7 @@ void AKnightC::StopReload()
 
 void AKnightC::Shot()
 {
-	if (!Crossbow->bIsFiringWeapon && !death && !Reloaded)
+	if (!Crossbow->bIsFiringWeapon && !death && !Reloaded  && !CarryingItem)
 	{
 		Crossbow->bIsFiringWeapon = true;
 		UWorld* World = GetWorld();
@@ -232,6 +239,7 @@ void AKnightC::setCameras(TArray<AActor*> newCameras)
 void AKnightC::Death()
 {
 	death = true;
+	CarryingItem = false;
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance != nullptr)
 	{
@@ -251,14 +259,15 @@ void AKnightC::Respawn()
 	{
 		APlayerController* PlayerController = Cast<APlayerController>(Controller);
 		PlayerController->SetViewTargetWithBlend(this);
+		
 	}
-	
-	SetActorLocation(FVector(0.0f,0.0f,0.0f));
+	int randomLocation = FMath::RandRange(0,3);
+	SetActorLocation(RespawnPoints[randomLocation]);
 }
 
 void AKnightC::DeathSystem()
 {
-	SetActorLocation(FVector(1500.0f,1500.0f,0.0f));
+	SetActorLocation(FVector(-5046.0f,-15.0f,377.0f));
 	if (IsLocallyControlled())
 	{
 		APlayerController* PlayerController = Cast<APlayerController>(Controller);
@@ -266,6 +275,11 @@ void AKnightC::DeathSystem()
 	}
 	UWorld* World = GetWorld();
 	World->GetTimerManager().SetTimer(RespawnTimer, this, &AKnightC::Respawn, 10.0f,false);
+}
+
+void AKnightC::setRespawnPoints(TArray<FVector> RPoints)
+{
+	RespawnPoints = RPoints;
 }
 
 void AKnightC::Damaged(float _damage)

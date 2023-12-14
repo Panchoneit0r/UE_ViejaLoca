@@ -46,8 +46,11 @@ class VIEJALOCA_API AKnightC : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* ChangeCameraAction;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Death, meta = (AllowPrivateAccess = "true"))
 	TArray<AActor*> Cameras;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Death, meta = (AllowPrivateAccess = "true"))
+	TArray<FVector> RespawnPoints;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	class UAnimMontage* ReloadedAnim;
@@ -76,7 +79,8 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
-	
+
+	UFUNCTION(BlueprintImplementableEvent)
 	void ChangeWeapon();
 
 	void Reload();
@@ -84,16 +88,7 @@ protected:
 	void Shot();
 
 	void ChangeCamera(const FInputActionValue& Value);
-	
-	UFUNCTION(BlueprintCallable)
-	void Death();
 
-	UFUNCTION(BlueprintCallable)
-	void Respawn();
-
-	UFUNCTION(Blueprintable)
-	void DeathSystem();
-	
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -112,10 +107,36 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void Damaged(float _damage);
 
+
 protected:
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite , Category="Gameplay")
+	bool CarryingItem = false;
+
+	FORCEINLINE float GetCarryingItem() const{return  CarryingItem;}
+
+	UFUNCTION(BlueprintCallable)
+	void setCarryingItem(bool _CarryingItem);
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite , Category="Gameplay")
+	float Points;
+
+	FORCEINLINE float GetPoints() const{return  Points;}
+
+	UFUNCTION(BlueprintCallable)
+	void setPoints(float _Points);
+	
+protected:
+	
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite , Category="Gameplay|Crossbow")
 	bool death = false;
 
+	FORCEINLINE float GetDeath() const{return  death;}
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite , Category="Gameplay|Crossbow")
 	float actualCamera = 0.0f;
+
+	FORCEINLINE float GetActualCamera() const{return  actualCamera;}
 
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentHealth)
 	float currentHealth;
@@ -133,6 +154,9 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void setCameras(TArray<AActor*> newCameras);
 
+	UFUNCTION(BlueprintCallable)
+	void setRespawnPoints(TArray<FVector> RPoints);
+
 	/** RepNotify for changes made to current health.*/
 	UFUNCTION()
 	void OnRep_CurrentHealth();
@@ -148,6 +172,14 @@ protected:
 
 	FTimerHandle RespawnTimer;
 	
+	UFUNCTION(BlueprintCallable)
+	void Death();
+
+	UFUNCTION(BlueprintCallable)
+	void Respawn();
+
+	UFUNCTION(Blueprintable)
+	void DeathSystem();
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite , Category="Gameplay|Crossbow")
 	TSubclassOf<class ACrossbowBase> CrossbowClass;
