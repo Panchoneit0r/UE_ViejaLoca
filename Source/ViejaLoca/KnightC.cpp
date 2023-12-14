@@ -44,20 +44,23 @@ void AKnightC::BeginPlay()
 		}
 	}
 
-	FVector spawnLocation = GetActorLocation();
-	FRotator spawnRotation = GetActorRotation();
+	if(CrossbowClass != nullptr)
+	{
+		FVector spawnLocation = GetActorLocation();
+		FRotator spawnRotation = GetActorRotation();
 
-	FActorSpawnParameters spawnParameters;
-	spawnParameters.Instigator = GetInstigator();
-	spawnParameters.Owner = this;
+		FActorSpawnParameters spawnParameters;
+		spawnParameters.Instigator = GetInstigator();
+		spawnParameters.Owner = this;
 
-	Crossbow = GetWorld()->SpawnActor<ACrossbowBase>(CrossbowClass, spawnLocation, spawnRotation, spawnParameters);
+		Crossbow = GetWorld()->SpawnActor<ACrossbowBase>(CrossbowClass, spawnLocation, spawnRotation, spawnParameters);
 
-	const FAttachmentTransformRules AttachmentTransformRules = FAttachmentTransformRules( EAttachmentRule::SnapToTarget, true );
-	Crossbow->AttachToComponent(GetMesh(),AttachmentTransformRules, "CrossbowSocket");
-
-	FirstPersonCameraComponent->AttachToComponent(GetMesh(),AttachmentTransformRules, "CameraSocket");
-
+		const FAttachmentTransformRules AttachmentTransformRules = FAttachmentTransformRules( EAttachmentRule::SnapToTarget, true );
+		Crossbow->AttachToComponent(GetMesh(),AttachmentTransformRules, "CrossbowSocket");
+	
+		FirstPersonCameraComponent->AttachToComponent(GetMesh(),AttachmentTransformRules, "CameraSocket");
+	}
+		
 	IOnlineSubsystem* OnlineSubsystem = IOnlineSubsystem::Get();
 	if(OnlineSubsystem)
 	{
