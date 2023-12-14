@@ -9,6 +9,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "OnlineSubsystem.h"
 #include "OnlineSessionSettings.h"
+#include "Components/ArrowComponent.h"
 #include "Net/UnrealNetwork.h"
 
 // Sets default values
@@ -109,26 +110,97 @@ void AKnightC::ChangeWeapon()
 {
 }
 
-void AKnightC::Reloded()
+//Reload system
+
+void AKnightC::Reload()
 {
 	if( !death)
 	{
-		Crossbow->Roleded();
+		
+		Reloaded = true;
+		ClientReload();
+		ServerReload();
 	}
 }
 
+void AKnightC::ServerReload_Implementation()
+{
+	UWorld* World = GetWorld();
+	World->GetTimerManager().SetTimer(ReloadTimer, this, &AKnightC::StopReload, 1.0f,false);
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance != nullptr)
+	{
+		AnimInstance->Montage_Play(ReloadedAnim, 1.0f);
+	}
+}
+
+void AKnightC::ClientReload_Implementation()
+{
+	UWorld* World = GetWorld();
+	World->GetTimerManager().SetTimer(ReloadTimer, this, &AKnightC::StopReload, 1.0f,false);
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance != nullptr)
+	{
+		AnimInstance->Montage_Play(ReloadedAnim, 1.0f);
+	}
+}
+
+void AKnightC::StopReload()
+{
+	Crossbow->Roleded();
+	Reloaded = false;
+}
+
+//Shot system
+
 void AKnightC::Shot()
 {
-	if (!Crossbow->bIsFiringWeapon && !death)
+	if (!Crossbow->bIsFiringWeapon && !death && !Reloaded)
 	{
 		Crossbow->bIsFiringWeapon = true;
 		UWorld* World = GetWorld();
 		World->GetTimerManager().SetTimer(FiringTimer, this, &AKnightC::StopFire, Crossbow->FireRate,false);
 		//Crossbow->Shooting();
 		FireServer();
+		FireClient();
 	}
-	
 }
+
+void AKnightC::StopFire()
+{
+	Crossbow->bIsFiringWeapon = false;
+}
+
+void AKnightC::FireClient_Implementation()
+{
+	if(Crossbow->Amunition < 1)
+	{
+		Crossbow->arrowPoint->SetWorldScale3D(FVector(0.0f,0.0f,0.0f));
+	}
+}
+
+void AKnightC::FireServer_Implementation()
+{
+	if (Crossbow->Amunition > 0)
+	{
+		FVector spawnLocation = Crossbow->FirePoint->GetComponentLocation();
+		//FVector spawnLocation = GetActorLocation() + ( GetActorRotation().Vector()  * 100.0f ) + (GetActorUpVector() * 50.0f);
+		FRotator spawnRotation = GetActorRotation();
+
+		FActorSpawnParameters spawnParameters;
+		spawnParameters.Instigator = GetInstigator();
+		spawnParameters.Owner = this;
+
+		AActor* projectile = GetWorld()->SpawnActor<AActor>(Crossbow->ArrowClass, spawnLocation, spawnRotation, spawnParameters);
+		Crossbow->Amunition--;
+		if(Crossbow->Amunition < 1)
+		{
+			Crossbow->arrowPoint->SetWorldScale3D(FVector(0.0f,0.0f,0.0f));
+		}
+	}
+}
+
+//Modo espectador 
 
 void AKnightC::ChangeCamera(const FInputActionValue& Value)
 {
@@ -149,6 +221,13 @@ void AKnightC::ChangeCamera(const FInputActionValue& Value)
 		PlayerController->SetViewTargetWithBlend(Cameras[actualCamera], 0.3f);
 	}
 }
+
+void AKnightC::setCameras(TArray<AActor*> newCameras)
+{
+	Cameras = newCameras;
+}
+
+//Damage and Death system
 
 void AKnightC::Death()
 {
@@ -189,15 +268,27 @@ void AKnightC::DeathSystem()
 	World->GetTimerManager().SetTimer(RespawnTimer, this, &AKnightC::Respawn, 10.0f,false);
 }
 
+void AKnightC::Damaged(float _damage)
+{
+	if(!death)
+	{
+		currentHealth -= _damage;
+		setCurrentHealth(currentHealth);
+	
+		/*if(currentHealth <= 0.0f)
+		{
+			DeathSystem();
+		}
+		*/
+	}
+}
+
+//Health System
+
 void AKnightC::setCurrentHealth(float newHealth)
 {
 	currentHealth = newHealth;
 	OnHealthUpdate();
-}
-
-void AKnightC::setCameras(TArray<AActor*> newCameras)
-{
-	Cameras = newCameras;
 }
 
 void AKnightC::OnRep_CurrentHealth()
@@ -242,20 +333,7 @@ void AKnightC::OnHealthUpdate()
 	}
 }
 
-void AKnightC::Damaged(float _damage)
-{
-	if(!death)
-	{
-		currentHealth -= _damage;
-		setCurrentHealth(currentHealth);
-	
-		/*if(currentHealth <= 0.0f)
-		{
-			DeathSystem();
-		}
-		*/
-	}
-}
+//Online Session Steam
 
 void AKnightC::CreateGameSession()
 {
@@ -463,39 +541,13 @@ void AKnightC::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		EnhancedInputComponent->BindAction(ShotAction, ETriggerEvent::Triggered, this, &AKnightC::Shot);
 
 		//Reloded
-		EnhancedInputComponent->BindAction(RelodedAction, ETriggerEvent::Triggered, this, &AKnightC::Reloded);
+		EnhancedInputComponent->BindAction(RelodedAction, ETriggerEvent::Triggered, this, &AKnightC::Reload);
 
 		//Change
 		EnhancedInputComponent->BindAction(ChangeWeaponAction, ETriggerEvent::Completed, this, &AKnightC::ChangeWeapon);
 
 		//ChangeCamera
 		EnhancedInputComponent->BindAction(ChangeCameraAction, ETriggerEvent::Started, this, &AKnightC::ChangeCamera);
-	}
-}
-
-void AKnightC::StopFire()
-{
-	Crossbow->bIsFiringWeapon = false;
-}
-
-void AKnightC::FireServer_Implementation()
-{
-	if (Crossbow->Amunition > 0)
-	{
-		//FVector spawnLocation = Crossbow->GetActorLocation();
-		FVector spawnLocation = GetActorLocation() + ( GetActorRotation().Vector()  * 100.0f ) + (GetActorUpVector() * 50.0f);
-		FRotator spawnRotation = GetActorRotation();
-
-		FActorSpawnParameters spawnParameters;
-		spawnParameters.Instigator = GetInstigator();
-		spawnParameters.Owner = this;
-
-		AActor* projectile = GetWorld()->SpawnActor<AActor>(Crossbow->ArrowClass, spawnLocation, spawnRotation, spawnParameters);
-		Crossbow->Amunition--;
-		if(Crossbow->Amunition < 1)
-		{
-			Crossbow->arrowPoint->SetWorldScale3D(FVector(0.0f,0.0f,0.0f));
-		}
 	}
 }
 

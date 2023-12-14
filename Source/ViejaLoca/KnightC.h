@@ -50,7 +50,7 @@ class VIEJALOCA_API AKnightC : public ACharacter
 	TArray<AActor*> Cameras;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
-	class UAnimMontage* RelodedAnim;
+	class UAnimMontage* ReloadedAnim;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	class UAnimMontage* DeathAnim;
@@ -79,7 +79,7 @@ protected:
 	
 	void ChangeWeapon();
 
-	void Reloded();
+	void Reload();
 
 	void Shot();
 
@@ -143,8 +143,6 @@ protected:
 	/** Response to health being updated. Called on the server immediately after modification, and on clients in response to a RepNotify*/
 	void OnHealthUpdate();
 
-
-
 	/** A timer handle used for providing the fire rate delay in-between spawns.*/
 	FTimerHandle DeathTimer;
 
@@ -166,6 +164,26 @@ protected:
 
 	UFUNCTION(Server,Reliable)
 	void FireServer();
+
+	UFUNCTION(NetMulticast,Reliable)
+	void FireClient();
+
+protected:
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite , Category="Gameplay|Crossbow")
+	bool Reloaded;
+	
+	/** A timer handle used for providing the fire rate delay in-between spawns.*/
+	FTimerHandle ReloadTimer;
+
+	/** Server function for spawning projectiles.*/
+	UFUNCTION(Server, Reliable)
+	void ServerReload();
+	
+	UFUNCTION(NetMulticast, Reliable)
+	void ClientReload();
+		
+	void StopReload();	
 
 protected:
 	UFUNCTION(BlueprintCallable)
